@@ -15,7 +15,8 @@ contract KoiosDonation {
     /// tracks the lifetime donations of users.
     mapping(address /*user*/ => mapping(address /*token*/ => uint256 /*value*/)) userTokenBalance;
     
-    event EthTransferReceived(address _from, uint _amount);
+    event EthDonationReceived(address _from, uint _amount);
+    event TokenDonationReceived(address _from, uint _amount, address _token);
     
     constructor(address _donation_account) {
         owner = msg.sender;
@@ -32,6 +33,19 @@ contract KoiosDonation {
         donationAccount = _new_acc;
     }
 
+    // send all supported tokens along with the ethereum inside this contract.
+    function withdraw() public onlyOwner {
+        if(ethBalance > 0){
+            withdrawEth(ethBalance);
+        }
+        for(uint i = 0; i < supportedTokens.length; i++){
+            uint256 cb = getContractTokenBalance(supportedTokens[i]);
+            if(cb > 0){
+                withdrawToken(supportedTokens[i], cb);
+            }
+        }
+    }
+
 
 /*
 -------------------------------------------------------
@@ -40,10 +54,10 @@ contract KoiosDonation {
 */
     receive() payable external {
         ethBalance += msg.value;
-        emit EthTransferReceived(msg.sender, msg.value);
+        emit EthDonationReceived(msg.sender, msg.value);
     }
 
-    function withdraw(uint amount) public onlyOwner {
+    function withdrawEth(uint amount) public onlyOwner {
         require(amount <= ethBalance, "Insufficient funds");
         
         payable(donationAccount).transfer(amount);
@@ -89,6 +103,7 @@ contract KoiosDonation {
         // 5. increment the donated amount of the user
         if(sc){
             userTokenBalance[msg.sender][_token] += dontatedAmount;
+            emit TokenDonationReceived(msg.sender, dontatedAmount, _token);
         }
     }
 
@@ -133,6 +148,7 @@ contract KoiosDonation {
         supportedTokens.push(token);
     }
 
+    /// FUS RO DAH!!
     function removeSupportedToken(uint32 index) public onlyOwner {
         supportedTokens[index] = supportedTokens[supportedTokens.length - 1];
         supportedTokens.pop();
