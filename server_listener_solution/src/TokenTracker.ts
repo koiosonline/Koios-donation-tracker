@@ -50,6 +50,7 @@ export class TokenTracker {
             if(blockNumber > this.lastProcessedBlock){
                 ((this.UserTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value); // lol sns
                 this.lastProcessedBlock = blockNumber;
+                console.log(`[+] Received transaction from: ${from}`);
             }
         });
         return this;
