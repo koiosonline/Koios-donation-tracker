@@ -9,7 +9,7 @@ export default async function startServer(options: ListenOptions){
         context.response.body = tokenTracker.UserTokenBalances;
       })
       .get("/user/:pubkey", (context) => { // user specific donations
-        context.response.body = tokenTracker.UserTokenBalances[context?.params?.pubkey];
+        context.response.body = tokenTracker.UserTokenBalances[context?.params?.pubkey] || {};
       })
     
     const app = new Application();
