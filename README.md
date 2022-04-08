@@ -16,3 +16,7 @@ donation_account=<the_donation_account>
 
 Install [deno](https://deno.land) or optionally run from the executable within the root of this repository.
 
+If you chose to manually install deno then:
+```sh
+deno run -A ./src/mod.ts
+```
