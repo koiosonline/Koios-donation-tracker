@@ -48,7 +48,7 @@ export class TokenTracker {
         }
         contract.on(topicSets,(from: string, _: string, value: string, {blockNumber}: ILogEvent) => {
             if(blockNumber > this.lastProcessedBlock){
-                ((this.UserTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value);
+                ((this.UserTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value); // lol sns
                 this.lastProcessedBlock = blockNumber;
             }
         });
