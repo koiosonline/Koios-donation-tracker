@@ -17,7 +17,7 @@ export class TokenTracker {
     UserTokenBalances: Record<string, Record<string, IUserDonations>> = {};
     provider: unknown;
     DONATION_ACCOUNT = Deno.env.get("donation_account") || ""
-    supportedTokens: Map<address, Contract> = new Map();
+    supportedTokens: Map<address, Contract> = new Map(); // TODO: save this to file for ref later
 
     /**
      * Uses the InfuraProvider by default. key is required
