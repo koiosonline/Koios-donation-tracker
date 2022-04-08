@@ -10,7 +10,8 @@ import { tokenTracker } from "./TokenTracker.ts";
  * thus removes all the listeners (yes even with anonymous functions).
  */
 tokenTracker
-  .addToken("0xc7AD46e0b8a400Bb3C915120d284AafbA8fc4735")
+  .addToken("0xc7AD46e0b8a400Bb3C915120d284AafbA8fc4735") // DAI
+  .addToken("0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b") // USDC
 
 
 
