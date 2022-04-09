@@ -36,7 +36,7 @@ export class TokenTracker {
     }
 
     getDonatedTokenAmount(user: string, token: string){
-        return this.database.userTokenBalances[user][token]?.value || 0;
+        return this.database.userTokenBalances[user]?.[token]?.value || 0;
     }
 
     addToken(token: string){
