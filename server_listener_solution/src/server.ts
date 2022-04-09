@@ -11,6 +11,9 @@ export default async function startServer(options: ListenOptions){
       .get("/user/:pubkey", (context) => { // user specific donations
         context.response.body = tokenTracker.database.userTokenBalances[context?.params?.pubkey] || {};
       })
+      .get("/user/:pubkey/:token", (context) => { // user specific and token specific donations
+        context.response.body = tokenTracker.getDonatedTokenAmount(context?.params?.pubkey, context?.params?.token)
+      })
     
     const app = new Application();
     app.use(router.routes());
