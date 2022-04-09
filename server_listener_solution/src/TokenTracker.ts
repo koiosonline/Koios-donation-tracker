@@ -2,6 +2,7 @@ import {ethers, utils, Contract} from "https://cdn.ethers.io/lib/ethers-5.6.esm.
 import "https://deno.land/std@0.134.0/dotenv/load.ts";
 import {ERC20} from "./abi/ERC20.ts"
 import Singleton from "https://deno.land/x/singleton@v1.1.0/mod.ts"
+import { DB } from "./db.ts";
 
 interface IUserDonations {
     value: number
@@ -9,15 +10,18 @@ interface IUserDonations {
 interface ILogEvent {
     blockNumber: number
 }
+interface ITokenTrackerData {
+    lastProcessedBlock: number,
+    userTokenBalances: Record<string, Record<string, IUserDonations>>
+}
 
 type address = string;
 
 export class TokenTracker {
-    lastProcessedBlock = 0; // TODO: come from file? avoid dupes?..
-    UserTokenBalances: Record<string, Record<string, IUserDonations>> = {};
+    database: DB<ITokenTrackerData> = new DB();
     provider: unknown;
     DONATION_ACCOUNT = Deno.env.get("donation_account") || ""
-    supportedTokens: Map<address, Contract> = new Map(); // TODO: save this to file for ref later (also change to arr)
+    supportedTokens: Map<address, Contract> = new Map();
 
     /**
      * Uses the InfuraProvider by default. key is required
@@ -32,7 +36,7 @@ export class TokenTracker {
     }
 
     getDonatedTokenAmount(user: string, token: string){
-        return this.UserTokenBalances[user][token]?.value || 0;
+        return this.database.userTokenBalances[user][token]?.value || 0;
     }
 
     addToken(token: string){
@@ -47,9 +51,9 @@ export class TokenTracker {
             ]
         }
         contract.on(topicSets,(from: string, _: string, value: string, {blockNumber}: ILogEvent) => {
-            if(blockNumber > this.lastProcessedBlock){
-                ((this.UserTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value); // lol sns
-                this.lastProcessedBlock = blockNumber;
+            if(blockNumber > this.database.lastProcessedBlock){
+                ((this.database.userTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value); // lol sns
+                this.database.lastProcessedBlock = blockNumber;
                 console.log(`[+] Received transaction from: ${from}`);
             }
         });
