@@ -137,7 +137,7 @@ contract KoiosDonation {
     }
 
     /// Gets all the supported ERC20 tokens of this contract. please note that the order of the tokens might change!.
-    function getSupportedTokens() public view onlyOwner returns(address[] memory){
+    function getSupportedTokens() public view returns(address[] memory){
         return supportedTokens;
     }
 
