@@ -6,10 +6,10 @@ export default async function startServer(options: ListenOptions){
     const router = new Router();
     router
       .get("/", (context) => { // all donations
-        context.response.body = tokenTracker.UserTokenBalances;
+        context.response.body = tokenTracker.database.userTokenBalances;
       })
       .get("/user/:pubkey", (context) => { // user specific donations
-        context.response.body = tokenTracker.UserTokenBalances[context?.params?.pubkey] || {};
+        context.response.body = tokenTracker.database.userTokenBalances[context?.params?.pubkey] || {};
       })
     
     const app = new Application();
