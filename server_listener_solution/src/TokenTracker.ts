@@ -8,8 +8,10 @@ interface IUserDonations {
     value: number
 }
 interface ILogEvent {
-    blockNumber: number
+    blockNumber: number,
+    address: string
 }
+
 interface ITokenTrackerData {
     lastProcessedBlock: number,
     userTokenBalances: Record<string, Record<string, IUserDonations>>
@@ -22,7 +24,13 @@ export class TokenTracker {
     provider: unknown;
     DONATION_ACCOUNT = Deno.env.get("donation_account") || ""
     supportedTokens: Map<address, Contract> = new Map();
-
+    readonly topicSets = {
+        topics: [
+            utils.id("Transfer(address,address,uint256)"),
+            null,
+            utils.hexZeroPad(this.DONATION_ACCOUNT, 32),
+        ]
+    }
     /**
      * Uses the InfuraProvider by default. key is required
      */
@@ -42,24 +50,29 @@ export class TokenTracker {
     addToken(token: string){
         const contract = new ethers.Contract(token, ERC20, this.provider);
         this.supportedTokens.set(token, contract);
-
-        const topicSets = {
-            topics: [
-                utils.id("Transfer(address,address,uint256)"),
-                null,
-                utils.hexZeroPad(this.DONATION_ACCOUNT, 32),
-            ]
-        }
-        contract.on(topicSets,(from: string, _: string, value: string, {blockNumber}: ILogEvent) => {
-            if(blockNumber > this.database.lastProcessedBlock){
-                ((this.database.userTokenBalances[from] ??= {})[token] ??= {value: 0}).value += Number(value); // lol sns
-                this.database.lastProcessedBlock = blockNumber;
-                console.log(`[+] Received transaction from: ${from}`);
-            }
+        this.processPastEvents(token).then(()=>{
+            contract.on(
+                this.topicSets,
+                (from: string, _: string, value: string, event: ILogEvent)=>this.processTransaction(from, value, event)
+            );
         });
         return this;
     }
-    // TODO: we need to take old transactions and match back in case this server ends up being offline...
+
+    processTransaction(from: string, value: string, {blockNumber, address}: ILogEvent){
+        if(blockNumber > this.database.lastProcessedBlock){
+            ((this.database.userTokenBalances[from] ??= {})[address] ??= {value: 0}).value += Number(value); // lol sns
+            this.database.lastProcessedBlock = blockNumber;
+            console.log(`[+] Received new transaction from: ${from}`);
+        }
+    }
+
+    private async processPastEvents(token: string){
+        const contract = new ethers.Contract(token, ERC20, this.provider);
+        for(const event of await contract.queryFilter(this.topicSets)){
+            this.processTransaction(event.args[0], event.data, event);
+        }
+    }
 }
 
 
