@@ -32,6 +32,8 @@ contract KoiosDonation {
     function changeDonationAccount(address _new_acc) public onlyOwner {
         donationAccount = _new_acc;
     }
+    
+    // TODO: change contract owner method..
 
     // send all supported tokens along with the ethereum inside this contract.
     function withdraw() public onlyOwner {
@@ -128,6 +130,7 @@ contract KoiosDonation {
         return tmp;
     }
 
+    // TODO: change to withdraw all (see disc)
     /// Withdraw the given token from the smart contract to the donationAccount
     function withdrawToken(address token_addr, uint256 amount) public onlyOwner {
         IERC20 token = IERC20(token_addr);
