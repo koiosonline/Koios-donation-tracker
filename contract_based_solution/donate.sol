@@ -34,6 +34,7 @@ contract KoiosDonation {
     }
     
     // TODO: change contract owner method..
+    // TODO: some way for owner to manually change donated amount.
 
     // send all supported tokens along with the ethereum inside this contract.
     function withdraw() public onlyOwner {
