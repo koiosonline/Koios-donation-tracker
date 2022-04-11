@@ -3,10 +3,9 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// TODO: import Ownable in fav of modifier
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract KoiosDonation {
-    address public owner;
+contract KoiosDonation is Ownable {
     address public donationAccount;
     uint256 public ethBalance;
 
@@ -17,15 +16,10 @@ contract KoiosDonation {
     
     event EthDonationReceived(address _from, uint _amount);
     event TokenDonationReceived(address _from, uint _amount, address _token);
+    event OwnerManuallyChangedDonation(address _ofUser);
     
     constructor(address _donation_account) {
-        owner = msg.sender;
         donationAccount = _donation_account;
-    }
-
-    modifier onlyOwner {
-        require(msg.sender == owner, "Only owners can execute this method");
-        _;
     }
 
     // wen moon?
@@ -33,10 +27,13 @@ contract KoiosDonation {
         donationAccount = _new_acc;
     }
     
-    // TODO: change contract owner method..
-    // TODO: some way for owner to manually change donated amount.
+    /// manually change the donation amount of a user
+    function changeDonationAmount(address user, address token, uint256 amount) public onlyOwner {
+        userTokenBalance[user][token] = amount;
+        emit OwnerManuallyChangedDonation(user); // transparency..
+    }
 
-    // send all supported tokens along with the ethereum inside this contract.
+    /// send all supported tokens along with the ethereum inside this contract.
     function withdraw() public onlyOwner {
         if(ethBalance > 0){
             withdrawEth(ethBalance);
@@ -44,7 +41,7 @@ contract KoiosDonation {
         for(uint i = 0; i < supportedTokens.length; i++){
             uint256 cb = getContractTokenBalance(supportedTokens[i]);
             if(cb > 0){
-                withdrawToken(supportedTokens[i], cb);
+                withdrawToken(supportedTokens[i]);
             }
         }
     }
@@ -131,13 +128,11 @@ contract KoiosDonation {
         return tmp;
     }
 
-    // TODO: change to withdraw all (see disc)
     /// Withdraw the given token from the smart contract to the donationAccount
-    function withdrawToken(address token_addr, uint256 amount) public onlyOwner {
+    function withdrawToken(address token_addr) public onlyOwner {
         IERC20 token = IERC20(token_addr);
         uint256 erc20balance = token.balanceOf(address(this));
-        require(amount <= erc20balance, "balance is low");
-        token.transfer(donationAccount, amount);
+        token.transfer(donationAccount, erc20balance);
     }
 
     /// Gets all the supported ERC20 tokens of this contract. please note that the order of the tokens might change!.
