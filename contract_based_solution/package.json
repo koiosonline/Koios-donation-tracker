@@ -1,0 +1,14 @@
+{
+  "name": "koios_donation_contract",
+  "version": "1.0.0",
+  "description": "Contract to manage donations using solidity",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Duart Snel",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.5.0"
+  }
+}
